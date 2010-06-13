@@ -1,0 +1,27 @@
+Name:                homepage
+Version:             0.1
+Synopsis:            Project Synopsis Here
+Description:         Project Description Here
+License:             AllRightsReserved
+Author:              Author
+Maintainer:          maintainer@example.com
+Stability:           Experimental
+Category:            Web
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Executable homepage
+  hs-source-dirs: src
+  main-is: Main.hs
+
+  Build-depends:
+    base >= 4,
+    bytestring >= 0.9.1 && < 0.10,
+    monads-fd >= 0.1 && < 0.2,
+    network >= 2.2.1 && < 2.3,
+    snap-core >= 0.2.6 && < 0.3,
+    snap-server >= 0.2.6 && < 0.3,
+    heist >= 0.2 && < 0.3,
+    hint >= 0.3.2 && < 0.4
+
+  ghc-options: -O2 -Wall -fwarn-tabs -threaded

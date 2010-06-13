@@ -1,0 +1,52 @@
+.page
+{
+  font-family: "LucidaGrande", sans-serif;
+  font-size: 13pt;
+  background-image: url(bg.png);
+}
+
+.content
+{
+  margin: 1em;
+  padding: .5em;
+  color: black;
+  background-color: #f8f8f8;
+  border-color: #9b9b9b;
+  border-style: solid;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 0px;
+  border-right-width: 0px;
+}
+
+.title
+{
+  margin-top: 0em;
+  font-size: 150%;
+}
+
+.data
+{
+}
+
+.key
+{
+  padding: 0em .5em;
+  text-align: right;
+  font-weight: bold;
+}
+
+.value
+{
+  padding: 0em .5em;
+}
+
+.foot
+{
+  text-align: center;
+}
+
+.foot img
+{
+  border:0;
+}
