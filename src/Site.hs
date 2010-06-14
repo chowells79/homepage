@@ -52,7 +52,7 @@ frontPage ts = ifTop $ do
                  Just rendered <- renderTemplate ts' "index"
                  writeBS rendered
                  let len = length docType + length rendered
-                 modifyResponse $ setContentLength len
+                 modifyResponse . setContentLength . fromIntegral $ len
 
 
 staticResources :: Snap ()
