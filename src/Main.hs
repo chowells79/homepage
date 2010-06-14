@@ -27,7 +27,7 @@ main = do
       aLog = Just "log/access.log"
       eLog = Just "log/error.log"
 
-      modules = [ "Site" ]--, "Text.Templating.Heist", "Snap.Types" ]
+      modules = [ "Site" ]
 
       ets = loadTemplates "resources/templates" (emptyTemplateState :: TemplateState Snap)
       ts = either error id <$> ets
