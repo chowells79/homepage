@@ -30,6 +30,7 @@ loadSnap sPath mNames aName init = do
         unsafeSetGhcOption "-hide-package=mtl"
         set [ searchPath := [sPath] ]
         loadModules mNames
+        setImports [ "Site", "Snap.Internal.Types", "Text.Templating.Heist.Types" ]
         interpret aName (undefined :: a -> Snap ())
 
   state <- init
