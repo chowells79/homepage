@@ -39,18 +39,18 @@ frontPage ts = ifTop $ do
                  modifyResponse $ setContentType "text/html; charset=utf-8"
 
                  ip <- rqRemoteAddr <$> getRequest
-                 hName <- liftIO $ safeHostFromAddr ip
+                 hName <- liftIO $ safeHostFromIp ip
 
                  let ts' = bindStrings [ ("ip", ip), ("rdns", hName) ] ts
 
                  Just rendered <- renderTemplate ts' "index"
                  writeBS rendered
-                 let len = length rendered
-                 modifyResponse . setContentLength . fromIntegral $ len
+                 let len = fromIntegral . length $ rendered
+                 modifyResponse . setContentLength $ len
 
 
-safeHostFromAddr :: ByteString -> IO ByteString
-safeHostFromAddr ip = resolve `catch` \e -> return ip
+safeHostFromIp :: ByteString -> IO ByteString
+safeHostFromIp ip = resolve `catch` \_ -> return ip
     where resolve = do
             hostAddr <- inet_addr $ unpack ip
             host <- getHostByAddr AF_INET hostAddr
