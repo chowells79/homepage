@@ -38,9 +38,6 @@ frontPage :: TemplateState Snap -> Snap ()
 frontPage ts = ifTop $ do
                  modifyResponse $ setContentType "text/html; charset=utf-8"
 
-                 let docType = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n"
-                 writeBS docType
-
                  ip <- rqRemoteAddr <$> getRequest
                  hName <- liftIO $ safeHostFromAddr ip
 
@@ -48,7 +45,7 @@ frontPage ts = ifTop $ do
 
                  Just rendered <- renderTemplate ts' "index"
                  writeBS rendered
-                 let len = length docType + length rendered
+                 let len = length rendered
                  modifyResponse . setContentLength . fromIntegral $ len
 
 
@@ -58,6 +55,7 @@ safeHostFromAddr ip = resolve `catch` \e -> return ip
             hostAddr <- inet_addr $ unpack ip
             host <- getHostByAddr AF_INET hostAddr
             return . pack . hostName $ host
+
 
 staticResources :: Snap ()
 staticResources = fileServe "resources/static"
