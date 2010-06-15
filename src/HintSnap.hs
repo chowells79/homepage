@@ -18,6 +18,7 @@ import Data.Typeable ( Typeable )
 
 import Language.Haskell.Interpreter
     ( OptionVal(..)
+    , as
     , set
     , searchPath
     , loadModules
@@ -48,7 +49,7 @@ loadSnap sPath mNames aName init = do
         set [ searchPath := [sPath] ]
         loadModules mNames
         setImports [ "Site", "Snap.Internal.Types", "Text.Templating.Heist.Types" ]
-        interpret aName (undefined :: a -> Snap ())
+        interpret aName (as :: a -> Snap ())
 
   readInterpreter <- multiReader $ runInterpreter interpreter
 
