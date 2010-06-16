@@ -31,6 +31,8 @@ import Text.Templating.Heist
     ( TemplateState
     , bindStrings
     , renderTemplate
+    , emptyTemplateState
+    , loadTemplates
     )
 
 
@@ -77,3 +79,9 @@ site ts = do
   msum [ frontPage ts
        , staticResources
        ]
+
+setup :: IO (TemplateState Snap)
+setup = do
+  let ets = loadTemplates "resources/templates"
+            (emptyTemplateState :: TemplateState Snap)
+  either error id <$> ets

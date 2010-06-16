@@ -1,22 +1,15 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Main where
 
-import Control.Applicative ( (<$>) )
-
 import Snap.Http.Server ( httpServe )
+import Snap.Types ( Snap )
 
 import System.Environment ( getArgs )
 
-import Snap.Types ( Snap )
-
-import Text.Templating.Heist
-    ( TemplateState
-    , emptyTemplateState
-    , loadTemplates
-    )
+import Text.Templating.Heist ( TemplateState )
 
 import HintSnap ( loadSnap )
---import Site ( site )
+--import Site ( site, init )
 
 main :: IO ()
 main = do
@@ -29,10 +22,8 @@ main = do
 
       modules = [ "Site" ]
 
-      ets = loadTemplates "resources/templates" (emptyTemplateState :: TemplateState Snap)
-      ts = either error id <$> ets
+  --site <- site <$> init
+  site <- loadSnap "src" modules "site" "setup"
+           (undefined :: TemplateState Snap)
 
-  --site' <- site <$> ts
-  site' <- loadSnap "src" modules "site" ts
-
-  httpServe "*" port "localhost" aLog eLog site'
+  httpServe "*" port "localhost" aLog eLog site

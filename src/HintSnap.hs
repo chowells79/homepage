@@ -42,14 +42,16 @@ import Snap.Types
     )
 
 loadSnap :: forall a. (Typeable a) => String -> [String] -> String ->
-            IO a -> IO (Snap ())
-loadSnap sPath mNames aName init = do
+            String -> a -> IO (Snap ())
+loadSnap sPath mNames aName iName _ = do
   let interpreter = do
         unsafeSetGhcOption "-hide-package=mtl"
         set [ searchPath := [sPath] ]
         loadModules mNames
-        setImports [ "Site", "Snap.Internal.Types", "Text.Templating.Heist.Types" ]
-        interpret aName (as :: a -> Snap ())
+        setImports [ "Prelude", "Site", "Snap.Internal.Types", "Text.Templating.Heist.Types" ]
+        a <- interpret aName (as :: a -> Snap ())
+        i <- interpret iName (as :: IO a)
+        return (i, a)
 
   readInterpreter <- multiReader $ runInterpreter interpreter
 
@@ -67,7 +69,7 @@ loadSnap sPath mNames aName init = do
 
           writeBS err
 
-      Right makeSnap -> liftIO init >>= makeSnap
+      Right (init, handler) -> liftIO init >>= handler
 
 multiReader :: IO a -> IO (IO (MVar a))
 multiReader action = do
