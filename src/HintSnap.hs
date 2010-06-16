@@ -1,5 +1,8 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
-module HintSnap where
+{-# LANGUAGE OverloadedStrings #-}
+module HintSnap
+    ( loadSnap
+    )
+where
 
 import Data.ByteString.Char8 ( length, pack )
 
@@ -13,8 +16,6 @@ import Control.Concurrent.MVar
     )
 import Control.Monad ( when )
 import Control.Monad.Trans ( liftIO )
-
-import Data.Typeable ( Typeable )
 
 import Language.Haskell.Interpreter
     ( OptionVal(..)
@@ -36,40 +37,34 @@ import Snap.Types
     , modifyResponse
     , setContentLength
     , setContentType
-    , setHeader
     , setResponseStatus
     , writeBS
     )
 
-loadSnap :: forall a. (Typeable a) => String -> [String] -> String ->
-            String -> a -> IO (Snap ())
-loadSnap sPath mNames aName iName _ = do
+loadSnap :: String -> String -> String -> IO (Snap ())
+loadSnap sPath mName aName = do
   let interpreter = do
         unsafeSetGhcOption "-hide-package=mtl"
         set [ searchPath := [sPath] ]
-        loadModules mNames
-        setImports [ "Prelude", "Site", "Snap.Internal.Types", "Text.Templating.Heist.Types" ]
-        a <- interpret aName (as :: a -> Snap ())
-        i <- interpret iName (as :: IO a)
-        return (i, a)
+        loadModules [ mName ]
+        setImports [ mName, "Prelude", "Snap.Types" ]
+        interpret aName (as :: Snap ())
 
   readInterpreter <- multiReader $ runInterpreter interpreter
 
   return $ do
-    interpreterMVar <- liftIO $ readInterpreter
-    eSnap <- liftIO . takeMVar $ interpreterMVar
+    eSnap <- liftIO $ readInterpreter >>= takeMVar
     case eSnap of
       Left e -> do
           let err = pack . show $ e
 
           modifyResponse $ setContentType "text/plain; charset=utf-8"
                          . setResponseStatus 500 "Internal Server Error"
-                         . setHeader "X-Internal-Error" err
                          . setContentLength (fromIntegral $ length err)
 
           writeBS err
 
-      Right (init, handler) -> liftIO init >>= handler
+      Right handler -> handler
 
 multiReader :: IO a -> IO (IO (MVar a))
 multiReader action = do

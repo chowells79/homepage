@@ -8,7 +8,7 @@ import Control.Monad.Trans ( liftIO )
 import Data.ByteString.Char8 ( ByteString, length, pack, unpack )
 
 import Network.BSD ( getHostByAddr , hostName)
-import Network.Socket ( HostAddress, Family(AF_INET), inet_addr )
+import Network.Socket ( Family(AF_INET), inet_addr )
 
 import Prelude hiding ( length )
 
@@ -85,3 +85,6 @@ setup = do
   let ets = loadTemplates "resources/templates"
             (emptyTemplateState :: TemplateState Snap)
   either error id <$> ets
+
+siteWithSetup :: Snap ()
+siteWithSetup = liftIO setup >>= site
