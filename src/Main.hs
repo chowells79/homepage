@@ -9,7 +9,7 @@ import System.Environment ( getArgs )
 import Text.Templating.Heist ( TemplateState )
 
 import HintSnap ( loadSnap )
---import Site ( site, init )
+import Site ( site, setup )
 
 main :: IO ()
 main = do
@@ -22,8 +22,8 @@ main = do
 
       modules = [ "Site" ]
 
-  --site <- site <$> init
-  site <- loadSnap "src" modules "site" "setup"
-           (undefined :: TemplateState Snap)
+  siteStatic <- fmap site setup
+  siteSnap <- loadSnap "src" modules "site" "setup"
+              (undefined :: TemplateState Snap)
 
-  httpServe "*" port "localhost" aLog eLog site
+  httpServe "*" port "localhost" aLog eLog siteSnap
