@@ -89,7 +89,8 @@ loadSnapTH init action production = do
           str = "liftIO " ++ initBase ++ " >>= " ++ actBase
           modules = catMaybes [initMod, actMod]
 
-      let loadSnapE = VarE 'loadSnap
+          loadSnapE = VarE 'loadSnap
+
       srcE <- lift src
       modulesE <- lift modules
       strE <- lift str
