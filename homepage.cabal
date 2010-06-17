@@ -19,7 +19,9 @@ Executable homepage
   main-is: Main.hs
 
   if flag(production)
-    cpp-options:             -DPRODUCTION
+    cpp-options:             -DPRODUCTION=True
+  else
+    cpp-options:             -DPRODUCTION=False
 
   Build-depends:
     base >= 4,

@@ -18,12 +18,6 @@ main = do
       aLog = Just "log/access.log"
       eLog = Just "log/error.log"
 
-  siteSnap <- $(loadSnapTH 'setup 'site
-#ifdef PRODUCTION
-                  True
-#else
-                  False
-#endif
-              )
+  siteSnap <- $(loadSnapTH 'setup 'site PRODUCTION)
 
   httpServe "*" port "localhost" aLog eLog siteSnap
