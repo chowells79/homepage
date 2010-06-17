@@ -63,6 +63,8 @@ import Snap.Types
     , writeBS
     )
 
+-- Assumes being spliced into the same source tree as the action to
+-- dynamically load is located in
 loadSnapTH :: Name -> Name -> Bool -> Q Exp
 loadSnapTH init action production = do
   case production of
@@ -97,7 +99,8 @@ loadSnapTH init action production = do
 
       return $ AppE (AppE (AppE loadSnapE srcE) modulesE) strE
 
-
+-- Assumes mtl is the only package installed with a conflicting
+-- Control.Monad.Trans
 loadSnap :: String -> [String] -> String -> IO (Snap ())
 loadSnap sPath mNames action = do
   let interpreter = do
