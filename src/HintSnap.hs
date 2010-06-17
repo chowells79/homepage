@@ -4,7 +4,15 @@ module HintSnap
     )
 where
 
-import Data.ByteString.Char8 ( length, pack )
+import Data.ByteString.Char8
+    ( ByteString
+    , append
+    , intercalate
+    , length
+    , pack
+    )
+
+import Data.List ( nub )
 
 import Control.Concurrent ( forkIO )
 import Control.Concurrent.MVar
@@ -18,8 +26,10 @@ import Control.Monad ( when )
 import Control.Monad.Trans ( liftIO )
 
 import Language.Haskell.Interpreter
-    ( OptionVal(..)
+    ( InterpreterError(..)
+    , OptionVal(..)
     , as
+    , errMsg
     , set
     , searchPath
     , loadModules
@@ -56,7 +66,7 @@ loadSnap sPath mName aName = do
     eSnap <- liftIO $ readInterpreter >>= takeMVar
     case eSnap of
       Left e -> do
-          let err = pack . show $ e
+          let err = format e
 
           modifyResponse $ setContentType "text/plain; charset=utf-8"
                          . setResponseStatus 500 "Internal Server Error"
@@ -65,6 +75,22 @@ loadSnap sPath mName aName = do
           writeBS err
 
       Right handler -> handler
+
+
+format :: InterpreterError -> ByteString
+format (UnknownError e)   =
+    append "Unknown interpreter error:\r\n\r\n" $ pack e
+
+format (NotAllowed e)     =
+    append "Interpreter action not allowed:\r\n\r\n" $ pack e
+
+format (GhcException e)   =
+    append "GHC error:\r\n\r\n" $ pack e
+
+format (WontCompile errs) =
+    let formatted = intercalate "\r\n" . map pack . nub . map errMsg $ errs
+    in append "Compile errors:\r\n\r\n" formatted
+
 
 multiReader :: IO a -> IO (IO (MVar a))
 multiReader action = do
