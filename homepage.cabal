@@ -26,6 +26,8 @@ Executable homepage
   Build-depends:
     base >= 4,
     bytestring >= 0.9.1 && < 0.10,
+    directory >= 1.0.0.0 && < 1.1,
+    filepath >= 1.0 && < 1.2,
     monads-fd >= 0.1 && < 0.2,
     network >= 2.2.1 && < 2.3,
     snap-core >= 0.2.7 && < 0.3,

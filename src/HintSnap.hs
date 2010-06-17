@@ -50,6 +50,7 @@ import Language.Haskell.TH.Syntax
     , location
     , nameBase
     , nameModule
+    , runIO
     )
 import Prelude hiding ( init, length )
 import qualified Prelude as P
@@ -62,6 +63,9 @@ import Snap.Types
     , setResponseStatus
     , writeBS
     )
+
+import System.Directory ( getCurrentDirectory )
+import System.FilePath ( (</>) )
 
 -- Assumes being spliced into the same source tree as the action to
 -- dynamically load is located in
@@ -77,6 +81,7 @@ loadSnapTH init action production = do
 
     False -> do
       loc <- location
+      cwd <- runIO getCurrentDirectory
 
       let initMod = nameModule init
           initBase = nameBase init
@@ -85,9 +90,10 @@ loadSnapTH init action production = do
 
           lf = P.length . loc_filename $ loc
           lm = P.length . loc_module $ loc
-          src = if lf > lm + 4
-                then take (lf - (lm + 4)) $ loc_filename loc
-                else "."
+          relSrc = if lf > lm + 4
+                   then take (lf - (lm + 4)) $ loc_filename loc
+                   else "."
+          src = cwd </> relSrc
           str = "liftIO " ++ initBase ++ " >>= " ++ actBase
           modules = catMaybes [initMod, actMod]
 
