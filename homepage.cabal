@@ -26,9 +26,9 @@ Executable homepage
     bytestring >= 0.9.1 && < 0.10,
     monads-fd >= 0.1 && < 0.2,
     network >= 2.2.1 && < 2.3,
-    snap-core >= 0.2.6 && < 0.3,
-    snap-server >= 0.2.6 && < 0.3,
-    heist >= 0.2 && < 0.3,
+    snap-core >= 0.2.7 && < 0.3,
+    snap-server >= 0.2.7 && < 0.3,
+    heist >= 0.2.1 && < 0.3,
     hint >= 0.3.2 && < 0.4,
     template-haskell >= 2.3 && < 2.5
 
