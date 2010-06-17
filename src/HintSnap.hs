@@ -1,6 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module HintSnap
     ( loadSnap
+    , loadSnapTH
     )
 where
 
@@ -13,6 +14,7 @@ import Data.ByteString.Char8
     )
 
 import Data.List ( nub )
+import Data.Maybe ( catMaybes )
 
 import Control.Concurrent ( forkIO )
 import Control.Concurrent.MVar
@@ -37,10 +39,20 @@ import Language.Haskell.Interpreter
     , runInterpreter
     , setImports
     )
-
 import Language.Haskell.Interpreter.Unsafe ( unsafeSetGhcOption )
 
+import Language.Haskell.TH.Syntax
+    ( Exp(..)
+    , Loc(..)
+    , Name
+    , Q
+    , lift
+    , location
+    , nameBase
+    , nameModule
+    )
 import Prelude hiding ( init, length )
+import qualified Prelude as P
 
 import Snap.Types
     ( Snap
@@ -51,14 +63,49 @@ import Snap.Types
     , writeBS
     )
 
-loadSnap :: String -> String -> String -> IO (Snap ())
-loadSnap sPath mName aName = do
+loadSnapTH :: Name -> Name -> Bool -> Q Exp
+loadSnapTH init action production = do
+  case production of
+    True ->
+        let initE = VarE init
+            actE = VarE action
+            fmapE = VarE 'fmap
+            simpleLoad = AppE (AppE fmapE actE) initE
+        in return simpleLoad
+
+    False -> do
+      loc <- location
+
+      let initMod = nameModule init
+          initBase = nameBase init
+          actMod = nameModule action
+          actBase = nameBase action
+
+          lf = P.length . loc_filename $ loc
+          lm = P.length . loc_module $ loc
+          src = if lf > lm + 4
+                then take (lf - (lm + 4)) $ loc_filename loc
+                else "."
+          str = "liftIO " ++ initBase ++ " >>= " ++ actBase
+          modules = catMaybes [initMod, actMod]
+
+      let loadSnapE = VarE 'loadSnap
+      srcE <- lift src
+      modulesE <- lift modules
+      strE <- lift str
+
+      return $ AppE (AppE (AppE loadSnapE srcE) modulesE) strE
+
+
+loadSnap :: String -> [String] -> String -> IO (Snap ())
+loadSnap sPath mNames action = do
   let interpreter = do
         unsafeSetGhcOption "-hide-package=mtl"
         set [ searchPath := [sPath] ]
-        loadModules [ mName ]
-        setImports [ mName, "Prelude", "Snap.Types" ]
-        interpret aName (as :: Snap ())
+        loadModules . nub $ mNames
+        let allMods = "Prelude" : "Snap.Types" : "Control.Monad.Trans" : mNames
+        setImports . nub $ allMods
+        interpret action (as :: Snap ())
 
   readInterpreter <- multiReader $ runInterpreter interpreter
 

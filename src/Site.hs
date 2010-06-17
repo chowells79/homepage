@@ -80,11 +80,9 @@ site ts = do
        , staticResources
        ]
 
+
 setup :: IO (TemplateState Snap)
 setup = do
   let ets = loadTemplates "resources/templates"
             (emptyTemplateState :: TemplateState Snap)
   either error id <$> ets
-
-siteWithSetup :: Snap ()
-siteWithSetup = liftIO setup >>= site

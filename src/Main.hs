@@ -1,14 +1,13 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell, CPP #-}
 module Main where
 
-import HintSnap ( loadSnap )
+import HintSnap ( loadSnapTH )
 
 import Site ( site, setup )
 
 import Snap.Http.Server ( httpServe )
 
 import System.Environment ( getArgs )
-
 
 main :: IO ()
 main = do
@@ -19,7 +18,12 @@ main = do
       aLog = Just "log/access.log"
       eLog = Just "log/error.log"
 
-  siteStatic <- fmap site setup
-  siteSnap <- loadSnap "src" "Site" "siteWithSetup"
+  siteSnap <- $(loadSnapTH 'setup 'site
+#ifdef PRODUCTION
+                  True
+#else
+                  False
+#endif
+              )
 
   httpServe "*" port "localhost" aLog eLog siteSnap
