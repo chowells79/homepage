@@ -14,11 +14,9 @@ import Prelude hiding ( length )
 
 import Snap.Types
     ( Snap
-    , getHeader
     , getRequest
     , ifTop
     , ipHeaderFilter'
-    , modifyRequest
     , modifyResponse
     , rqRemoteAddr
     , setContentLength
