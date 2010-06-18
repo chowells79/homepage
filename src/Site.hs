@@ -17,6 +17,7 @@ import Snap.Types
     , getHeader
     , getRequest
     , ifTop
+    , ipHeaderFilter'
     , modifyRequest
     , modifyResponse
     , rqRemoteAddr
@@ -63,18 +64,9 @@ staticResources :: Snap ()
 staticResources = fileServe "resources/static"
 
 
-realIPFilter :: Snap ()
-realIPFilter = do
-  mRealIP <- getHeader "x-real-ip" <$> getRequest
-
-  let setIP realIP = modifyRequest $ \rq -> rq { rqRemoteAddr = realIP }
-
-  maybe (return ()) setIP mRealIP
-
-
 site :: TemplateState Snap -> Snap ()
 site ts = do
-  realIPFilter
+  ipHeaderFilter' "x-real-ip"
 
   msum [ frontPage ts
        , staticResources
