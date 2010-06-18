@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module HintSnap
     ( loadSnap
-    , loadSnapTH
     )
 where
 
@@ -14,7 +13,6 @@ import Data.ByteString.Char8
     )
 
 import Data.List ( nub )
-import Data.Maybe ( catMaybes )
 
 import Control.Concurrent ( forkIO )
 import Control.Concurrent.MVar
@@ -41,19 +39,7 @@ import Language.Haskell.Interpreter
     )
 import Language.Haskell.Interpreter.Unsafe ( unsafeSetGhcOption )
 
-import Language.Haskell.TH.Syntax
-    ( Exp(..)
-    , Loc(..)
-    , Name
-    , Q
-    , lift
-    , location
-    , nameBase
-    , nameModule
-    , runIO
-    )
 import Prelude hiding ( init, length )
-import qualified Prelude as P
 
 import Snap.Types
     ( Snap
@@ -63,47 +49,6 @@ import Snap.Types
     , setResponseStatus
     , writeBS
     )
-
-import System.Directory ( getCurrentDirectory )
-import System.FilePath ( (</>) )
-
--- Assumes being spliced into the same source tree as the action to
--- dynamically load is located in
-loadSnapTH :: Name -> Name -> Bool -> Q Exp
-loadSnapTH init action production = do
-  case production of
-    True ->
-        let initE = VarE init
-            actE = VarE action
-            fmapE = VarE 'fmap
-            simpleLoad = AppE (AppE fmapE actE) initE
-        in return simpleLoad
-
-    False -> do
-      loc <- location
-      cwd <- runIO getCurrentDirectory
-
-      let initMod = nameModule init
-          initBase = nameBase init
-          actMod = nameModule action
-          actBase = nameBase action
-
-          lf = P.length . loc_filename $ loc
-          lm = P.length . loc_module $ loc
-          relSrc = if lf > lm + 4
-                   then take (lf - (lm + 4)) $ loc_filename loc
-                   else "."
-          src = cwd </> relSrc
-          str = "liftIO " ++ initBase ++ " >>= " ++ actBase
-          modules = catMaybes [initMod, actMod]
-
-          loadSnapE = VarE 'loadSnap
-
-      srcE <- lift src
-      modulesE <- lift modules
-      strE <- lift str
-
-      return $ AppE (AppE (AppE loadSnapE srcE) modulesE) strE
 
 -- Assumes mtl is the only package installed with a conflicting
 -- Control.Monad.Trans

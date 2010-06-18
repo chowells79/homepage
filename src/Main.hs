@@ -1,7 +1,7 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell, CPP #-}
+{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module Main where
 
-import HintSnap ( loadSnapTH )
+import HintEnabler ( loadSnapTH )
 
 import Site ( site, setup )
 
@@ -18,6 +18,6 @@ main = do
       aLog = Just "log/access.log"
       eLog = Just "log/error.log"
 
-  siteSnap <- $(loadSnapTH 'setup 'site PRODUCTION)
+  siteSnap <- $(loadSnapTH 'setup 'site)
 
   httpServe "*" port "localhost" aLog eLog siteSnap
