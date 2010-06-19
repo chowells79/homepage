@@ -1,11 +1,15 @@
-{-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings, CPP, TemplateHaskell #-}
 module Main where
-
-import SnapLoader ( loadSnapTH )
 
 import Site ( site, setup )
 
 import Snap.Http.Server ( httpServe )
+
+#ifdef PRODUCTION
+import StaticSnap ( loadSnapTH )
+#else
+import HintSnap ( loadSnapTH )
+#endif
 
 import System.Environment ( getArgs )
 

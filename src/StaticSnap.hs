@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module StaticSnap
-    ( snapTH
+    ( loadSnapTH
     )
 where
 
@@ -12,8 +12,8 @@ import Language.Haskell.TH.Syntax
 
 import Prelude hiding ( init )
 
-snapTH :: Name -> Name -> Q Exp
-snapTH init action = do
+loadSnapTH :: Name -> Name -> Q Exp
+loadSnapTH init action = do
     let initE = VarE init
         actE = VarE action
         fmapE = VarE 'fmap

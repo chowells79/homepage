@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module HintSnap
     ( hintSnap
-    , snapTH
+    , loadSnapTH
     )
 where
 
@@ -74,8 +74,8 @@ import System.FilePath ( (</>) )
 
 -- Assumes being spliced into the same source tree as the action to
 -- dynamically load is located in
-snapTH :: Name -> Name -> Q Exp
-snapTH init action = do
+loadSnapTH :: Name -> Name -> Q Exp
+loadSnapTH init action = do
     loc <- location
     cwd <- runIO getCurrentDirectory
 
