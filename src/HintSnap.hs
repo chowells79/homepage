@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell #-}
 module HintSnap
-    ( loadSnap
+    ( hintSnap
+    , snapTH
     )
 where
 
@@ -26,6 +27,7 @@ import Control.Concurrent.MVar
 import Control.Monad ( when )
 import Control.Monad.Trans ( liftIO )
 
+import Data.Maybe ( catMaybes )
 import Data.Time.Clock ( NominalDiffTime, diffUTCTime, getCurrentTime )
 
 import Language.Haskell.Interpreter
@@ -42,7 +44,21 @@ import Language.Haskell.Interpreter
     )
 import Language.Haskell.Interpreter.Unsafe ( unsafeSetGhcOption )
 
+import Language.Haskell.TH.Syntax
+    ( Exp(..)
+    , Name
+    , Q
+    , lift
+    , location
+    , loc_filename
+    , loc_module
+    , nameBase
+    , nameModule
+    , runIO
+    )
+
 import Prelude hiding ( init, length )
+import qualified Prelude as P
 
 import Snap.Types
     ( Snap
@@ -53,10 +69,43 @@ import Snap.Types
     , writeBS
     )
 
+import System.Directory ( getCurrentDirectory )
+import System.FilePath ( (</>) )
+
+-- Assumes being spliced into the same source tree as the action to
+-- dynamically load is located in
+snapTH :: Name -> Name -> Q Exp
+snapTH init action = do
+    loc <- location
+    cwd <- runIO getCurrentDirectory
+
+    let initMod = nameModule init
+        initBase = nameBase init
+        actMod = nameModule action
+        actBase = nameBase action
+
+        lf = P.length . loc_filename $ loc
+        lm = P.length . loc_module $ loc
+        relSrc = if lf > lm + 4
+                   then take (lf - (lm + 4)) $ loc_filename loc
+                   else "."
+        src = cwd </> relSrc
+        str = "liftIO " ++ initBase ++ " >>= " ++ actBase
+        modules = catMaybes [initMod, actMod]
+
+        hintSnapE = VarE 'hintSnap
+
+    srcE <- lift src
+    modulesE <- lift modules
+    strE <- lift str
+
+    return $ AppE (AppE (AppE hintSnapE srcE) modulesE) strE
+
+
 -- Assumes mtl is the only package installed with a conflicting
 -- Control.Monad.Trans
-loadSnap :: String -> [String] -> String -> IO (Snap ())
-loadSnap sPath mNames action = do
+hintSnap :: String -> [String] -> String -> IO (Snap ())
+hintSnap sPath mNames action = do
     let interpreter = do
         unsafeSetGhcOption "-hide-package=mtl"
         set [ searchPath := [sPath] ]
