@@ -112,11 +112,11 @@ protectedActionEvaluator minReEval action = do
                 when (null readers) $ do
                     forkIO $ do
                         result <- action
-                        readers' <- takeMVar readerContainer
+                        allReaders <- takeMVar readerContainer
                         finishTime <- getCurrentTime
                         swapMVar resultContainer $ Just (result, finishTime)
                         putMVar readerContainer []
-                        mapM_ (flip putMVar result) readers'
+                        mapM_ (flip putMVar result) allReaders
                     return ()
 
                 putMVar readerContainer $ reader : readers
