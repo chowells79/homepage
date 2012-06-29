@@ -10,29 +10,42 @@ Category:            Web
 Build-type:          Simple
 Cabal-version:       >=1.2
 
-Flag production
-  Description: Whether to build the server in production (static loading) mode
+Flag development
+  Description: Whether to build the server in development (interpreted) mode
   Default: False
 
 Executable homepage
   hs-source-dirs: src
   main-is: Main.hs
 
-  if flag(production)
-    cpp-options:             -DPRODUCTION
-
   Build-depends:
     base >= 4,
     bytestring >= 0.9.1 && < 0.10,
-    directory >= 1.0.0.0 && < 1.1,
-    filepath >= 1.0 && < 1.2,
-    monads-fd >= 0.1 && < 0.2,
-    network >= 2.2.1 && < 2.3,
-    snap-core >= 0.2.7 && < 0.3,
-    snap-server >= 0.2.7 && < 0.3,
-    heist >= 0.2.1 && < 0.3,
-    hint >= 0.3.2 && < 0.4,
-    template-haskell >= 2.3 && < 2.5,
-    time >= 1.0 && < 1.3
+    text == 0.11.*,
+    directory >= 1.1 && < 1.2,
+    filepath >= 1.3 && < 1.4,
+    mtl == 2.1.*,
+    network == 2.3.*,
+    snap-core == 0.9.*,
+    snap-server == 0.9.*,
+    snap-loader-static == 0.9.*,
+    heist == 0.8.*,
+    time >= 1.3 && < 1.5
 
-  ghc-options: -O2 -Wall -fwarn-tabs -threaded
+  if flag(development)
+    build-depends:
+      snap-loader-dynamic == 0.9.*
+    cpp-options: -DDEVELOPMENT
+    -- In development mode, speed is already going to suffer, so skip
+    -- the fancy optimization flags.  Additionally, disable all
+    -- warnings.  The hint library doesn't give an option to execute
+    -- compiled code when there were also warnings, so disabling
+    -- warnings allows quicker workflow.
+    ghc-options: -threaded -w
+  else
+    if impl(ghc >= 6.12.0)
+      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                   -fno-warn-orphans -fno-warn-unused-do-bind
+    else
+      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
+                   -fno-warn-orphans
